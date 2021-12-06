@@ -80,8 +80,6 @@ def part2(inputData):
     print(int(gamma, 2) * int(epsilon, 2))
 
 
-
-
 if __name__ == "__main__":
     input_data = "./data.txt"
     # part1(input_data)
