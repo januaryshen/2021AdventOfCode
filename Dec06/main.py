@@ -42,11 +42,7 @@ def part2(inputData):
         fish_dict[7] = fish_dict.get(8, 0)
         fish_dict[8] = fish_dict.get(-1, 0)
         day += 1
-
-
     print(sum(fish_dict.values()) - fish_dict.get(-1))
-
-
 
 
 if __name__ == "__main__":
