@@ -137,7 +137,7 @@ def part2(inputData):
 if __name__ == "__main__":
     input_data = "./data.txt"
     # part1(input_data)
-    # part2(input_data)
+    # part2(input_data)  # My part2 code is incorrect
 
     # Part 2: Modified input from Reddit user lbm364dl at https://www.reddit.com/r/adventofcode/comments/rca6vp/2021_day_9_solutions/
     grid = [[*map(int, l[:-1])] for l in open('./data.txt')]
@@ -163,7 +163,6 @@ if __name__ == "__main__":
 
 
     lows = [(y, x) for y in range(n-1) for x in range(m-1) if is_low_point(y, x)]
-
     basins = sorted([dfs(y, x) for y, x in lows])
 
     # print('Star 1:', sum(grid[y][x] + 1 for y, x in lows))
