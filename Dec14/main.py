@@ -37,52 +37,82 @@ def part1(inputData, polymer, iteration):
 
 
 def part2(inputData, polymer):
-    I = list(map(str.strip, open(inputData).readlines()))
+    # I = list(map(str.strip, open(inputData).readlines()))
+    #
+    # def parse_template(t):
+    #     res = defaultdict(lambda: 0)
+    #
+    #     for i in range(len(t) - 1):
+    #         res[t[i] + t[i + 1]] += 1
+    #
+    #     return res
+    #
+    # template = parse_template(polymer)
+    # rules = {p: i for p, i in (x.split(" -> ") for x in I)}
+    #
+    # def expand(s):
+    #     res = defaultdict(lambda: 0)
+    #
+    #     for key in s.keys():
+    #         if key in rules:
+    #             res[key[0] + rules[key]] += s[key]
+    #             res[rules[key] + key[1]] += s[key]
+    #         else:
+    #             res[key] += 1
+    #
+    #     return res
+    #
+    # def expand_n(n, t):
+    #     return reduce(lambda s, _: expand(s), range(n), t)
+    #
+    # def count_elems(s):
+    #     res = defaultdict(lambda: 0)
+    #
+    #     for key in s:
+    #         res[key[1]] += s[key]
+    #
+    #     return res
+    #
+    # count = count_elems(expand_n(10, template))
+    # print("part1", max(count.values()) - min(count.values()))
+    #
+    # count = count_elems(expand_n(40, template))
+    # print("part2", max(count.values()) - min(count.values()))
 
-    def parse_template(t):
-        res = defaultdict(lambda: 0)
+    polymer, pairs = open(inputData).read().split('\n\n')
 
-        for i in range(len(t) - 1):
-            res[t[i] + t[i + 1]] += 1
+    pairs = dict(line.split(' -> ') for line in pairs.splitlines())
 
-        return res
+    def polymer_counts(polymer):
+        elem_count = defaultdict(int)
+        pair_count = defaultdict(int)
 
-    template = parse_template(polymer)
-    rules = {p: i for p, i in (x.split(" -> ") for x in I)}
+        for i in range(len(polymer) - 1):
+            elem_count[polymer[i]] += 1
+            pair_count[polymer[i:i + 2]] += 1
+        elem_count[polymer[-1]] += 1
 
-    def expand(s):
-        res = defaultdict(lambda: 0)
+        return elem_count, pair_count
 
-        for key in s.keys():
-            if key in rules:
-                res[key[0] + rules[key]] += s[key]
-                res[rules[key] + key[1]] += s[key]
-            else:
-                res[key] += 1
+    def insert_pairs():
+        for pair, count in pair_count.copy().items():
+            pair_count[pair] -= count
+            add = pairs[pair]
+            elem_count[add] += count
+            pair_count[pair[0] + add] += count
+            pair_count[add + pair[1]] += count
 
-        return res
+    elem_count, pair_count = polymer_counts(polymer)
 
-    def expand_n(n, t):
-        return reduce(lambda s, _: expand(s), range(n), t)
+    for i in range(40):
+        insert_pairs()
 
-    def count_elems(s):
-        res = defaultdict(lambda: 0)
-
-        for key in s:
-            res[key[1]] += s[key]
-
-        return res
-
-    count = count_elems(expand_n(10, template))
-    print("part1", max(count.values()) - min(count.values()))
-
-    count = count_elems(expand_n(40, template))
-    print("part2", max(count.values()) - min(count.values()))
+    print(max(elem_count.values()) - min(elem_count.values()))
 
 
 if __name__ == "__main__":
     input_data = "./data.txt"
     polymer = "CFFPOHBCVVNPHCNBKVNV"
-    part1(input_data, polymer, 10)
-    # part 2 is from Reddit zndflxtyh at https://www.reddit.com/r/adventofcode/comments/rfzq6f/2021_day_14_solutions/
+    # part1(input_data, polymer, 10)
+    # part 2 is from Reddit zndflxtyh and mapleoctopus621 at https://www.reddit.com/r/adventofcode/comments/rfzq6f/2021_day_14_solutions/
     part2(input_data, polymer)
