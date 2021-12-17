@@ -8,11 +8,16 @@ class BITS:
         self.binary_string = bin(int(hex_string, 16))[2:].zfill(self.hex_size)
         self.version_sum = 0
         self.literal_value = 0
-        self.subpacket_value = []
-        self.subpacket_bit = 0
+        self.subpacket_defined_bit = []
+        self.subpacket_current_bit = 0
         self.typeID = 0
         self.literal_value_subpacket = []
         self.ultimate_sum = 0
+        self.count_bit_mode_on = 0
+
+    def add_subpacket_bit(self, value):
+        if self.count_bit_mode_on == 1:
+            self.subpacket_current_bit += value
 
     def get_literal_value(self, binary_string):
         max_group = len(binary_string) // 5
@@ -25,7 +30,7 @@ class BITS:
                 self.literal_value_subpacket.append(int(value, 2))
                 self.binary_string = binary_string[(i+1)*5:]
                 self.get_version_and_type(self.binary_string)
-                self.subpacket_bit += (i + 1) * 5
+                self.add_subpacket_bit((i + 1) * 5)
                 break
 
     def get_version_decimal(self, binary_string):
@@ -35,20 +40,22 @@ class BITS:
         # next 11 bits contains the number of packet
         num_of_packet = int(binary_string[0: 11], 2)
         self.binary_string = binary_string[11:]
-        self.subpacket_bit += 11
+        self.add_subpacket_bit(7+11)
         for i in range(num_of_packet):
             self.get_version_and_type(self.binary_string)
 
     def length_in_bit_mode(self, binary_string):
         # next 15 bits contains the bit usage of subpacket
-        self.subpacket_value.append(int(binary_string[0: 15], 2))
+        self.subpacket_defined_bit.append(int(binary_string[0: 15], 2))
         self.binary_string = binary_string[15:]
-        self.subpacket_bit += 15
-        while self.subpacket_bit < self.subpacket_value[-1]:
+        self.add_subpacket_bit(7+15)
+        self.count_bit_mode_on = 1
+        while self.subpacket_current_bit < self.subpacket_defined_bit[-1]:
             self.get_version_and_type(self.binary_string)
-        self.subpacket_value.pop()
+        self.subpacket_defined_bit.pop()
+        self.count_bit_mode_on = 0
 
-    def get_version_and_type(self, binary_string):
+    def part_2_count(self):
         if self.literal_value_subpacket:
             if self.typeID == 0 or self.typeID == 4:
                 self.ultimate_sum += np.sum(self.literal_value_subpacket)
@@ -69,14 +76,15 @@ class BITS:
                 self.ultimate_sum += 1 if self.literal_value_subpacket[0] == self.literal_value_subpacket[1] else 0
         self.literal_value_subpacket = []
 
+    def get_version_and_type(self, binary_string):
+        self.part_2_count()
         if len(self.binary_string) >= 11:
             self.get_version_decimal(binary_string[0:3])
             self.typeID = int(binary_string[3:6], 2)
             if self.typeID == 4:
-                self.subpacket_bit += 6
+                self.add_subpacket_bit(6)
                 self.get_literal_value(binary_string[6:])
             else:  # operator mode
-                self.subpacket_bit += 7
                 if binary_string[6] == '1':
                     self.num_of_packet_mode(binary_string[7:])
                 else:
@@ -100,7 +108,7 @@ def part2(inputData):
 
 if __name__ == "__main__":
     input_data = "./data.txt"
-    part1(input_data)
-    # part2(input_data)
+    # part1(input_data)
+    part2(input_data)
 
     # source: Zealousideal-Pen9091 from https://www.reddit.com/r/adventofcode/comments/rgqzt5/2021_day_15_solutions/
