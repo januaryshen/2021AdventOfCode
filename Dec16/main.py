@@ -24,8 +24,8 @@ class BITS:
                 self.literal_value += int(value, 2)
                 self.literal_value_subpacket.append(int(value, 2))
                 self.binary_string = binary_string[(i+1)*5:]
-                self.subpacket_bit += (i + 1) * 5
                 self.get_version_and_type(self.binary_string)
+                self.subpacket_bit += (i + 1) * 5
                 break
 
     def get_version_decimal(self, binary_string):
@@ -44,16 +44,13 @@ class BITS:
         self.subpacket_value.append(int(binary_string[0: 15], 2))
         self.binary_string = binary_string[15:]
         self.subpacket_bit += 15
-        while True:
+        while self.subpacket_bit < self.subpacket_value[-1]:
             self.get_version_and_type(self.binary_string)
-            if self.subpacket_bit < self.subpacket_value[-1]:
-                break
-
         self.subpacket_value.pop()
 
-    def sum_ultimate(self):
+    def get_version_and_type(self, binary_string):
         if self.literal_value_subpacket:
-            if self.typeID == 0:
+            if self.typeID == 0 or self.typeID == 4:
                 self.ultimate_sum += np.sum(self.literal_value_subpacket)
             elif self.typeID == 1:
                 if len(self.literal_value_subpacket) == 1:
@@ -64,23 +61,21 @@ class BITS:
                 self.ultimate_sum += np.min(self.literal_value_subpacket)
             elif self.typeID == 3:
                 self.ultimate_sum += np.max(self.literal_value_subpacket)
-            elif self.typeID == 5 and len(self.literal_value_subpacket) == 2:
+            elif self.typeID == 5:
                 self.ultimate_sum += 1 if self.literal_value_subpacket[0] > self.literal_value_subpacket[1] else 0
-            elif self.typeID == 6 and len(self.literal_value_subpacket) == 2:
+            elif self.typeID == 6:
                 self.ultimate_sum += 1 if self.literal_value_subpacket[0] < self.literal_value_subpacket[1] else 0
-            elif self.typeID == 7 and len(self.literal_value_subpacket) == 2:
+            elif self.typeID == 7:
                 self.ultimate_sum += 1 if self.literal_value_subpacket[0] == self.literal_value_subpacket[1] else 0
         self.literal_value_subpacket = []
 
-    def get_version_and_type(self, binary_string):
-        # self.sum_ultimate()
         if len(self.binary_string) >= 11:
             self.get_version_decimal(binary_string[0:3])
-            if int(binary_string[3:6], 2) == 4:
+            self.typeID = int(binary_string[3:6], 2)
+            if self.typeID == 4:
                 self.subpacket_bit += 6
                 self.get_literal_value(binary_string[6:])
             else:  # operator mode
-                self.typeID = int(binary_string[3:6], 2)
                 self.subpacket_bit += 7
                 if binary_string[6] == '1':
                     self.num_of_packet_mode(binary_string[7:])
